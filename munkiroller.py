@@ -18,7 +18,7 @@ import os
 import sys
 
 def write_manifest(manifestname, formfactor):
-    """This function writes a Munki manifest.
+    """This function writes a Munki manifest. Does not overwrite if the manifest already exists!
 
     Takes a manifestname and a formfactor.
 
@@ -67,7 +67,10 @@ def write_manifest(manifestname, formfactor):
     None
 
     """
+    manifest_path = '/usr/local/munkiroller_env/manifests/'
+    manifest_path = 'manifests/'
     write_plist = False
+    plist_exist = False
 
     if not os.access('manifests', os.W_OK):
         try:
@@ -99,11 +102,14 @@ def write_manifest(manifestname, formfactor):
     elif formfactor == 'laptop':
         local_manifest = local_manifest_laptop
         write_plist = True
-    else:
-        write_plist = False
 
-    if write_plist:
-        plistlib.writePlist(local_manifest, '/usr/local/munkiroller_env/manifests/' + str(manifestname))
+    if os.path.exists(str(manifest_path) + str(manifestname)):
+        plist_exist = True
+    else:
+        plist_exist = False
+
+    if write_plist and not plist_exist:
+        plistlib.writePlist(local_manifest, str(manifest_path) + str(manifestname))
 
 
 def application(environ, start_response):
@@ -128,6 +134,7 @@ def application(environ, start_response):
     formfactor_name = "no_formfactor_name"
 
     keys = { 'key_a': 'secret_a', 'key_b': 'secret_b', 'key_c': 'secret_c', 'key_d': 'secret_d', }
+
     authenticated_by_apikey = False
 
     provided_hostname = False
