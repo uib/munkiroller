@@ -103,10 +103,10 @@ def write_manifest(manifestname, formfactor):
         write_plist = False
 
     if write_plist:
-        plistlib.writePlist(local_manifest, 'manifests/' + str(manifestname))
+        plistlib.writePlist(local_manifest, '/usr/local/munkiroller_env/manifests/' + str(manifestname))
 
 
-def app(environ, start_response):
+def application(environ, start_response):
     """ This is the entrypoint of this wsgi application.
 
     Params
@@ -158,6 +158,8 @@ def app(environ, start_response):
                 if provided_hostname and provided_formfactor:
                     write_manifest(manifest_name, formfactor_name)
                     http_data = http_data + ", hostname and formfactor provided."
+                elif not provided_hostname and not provided_formfactor:
+                    http_data = http_data + ", but missing hostname and formfactor.\nNothing written to disk!"
                 elif provided_hostname:
                     http_data = http_data + ", but missing formfactor.\nNothing written to disk!"
                 elif provided_formfactor:
@@ -180,14 +182,13 @@ def app(environ, start_response):
         http_status = "500 Internal Server Error"
         response_headers = [("content-type", "text/plain")]
         start_response(http_status, response_headers, sys.exc_info())
-        return ["Exception: something wrong in munkiroller::app"]
+        return ["Exception: something wrong in munkiroller::application"]
 
 
-# To get your testenv
 # To test with Gunicorn
 # $ cd /Users/username/development/github/munkiroller
 # $ source activate munkiroller
 # $ conda install gunicorn
-# $ gunicorn --workers=1 munkiroller:app
+# $ gunicorn --workers=1 munkiroller:application
 # optionally, which will bind to all interfaces, and --max-requests will make your code "automatically reload on change"
 # $ gunicorn munkiroller:app --bind 0.0.0.0:8000 --max-requests 1
